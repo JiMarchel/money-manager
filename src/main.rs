@@ -1,8 +1,9 @@
 use dotenvy::dotenv;
+use money_manager::bootstrap;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> anyhow::Result<()> {
     dotenv().ok();
-    
-    println!("Hello, world!");
+
+    bootstrap::app::run().await
 }

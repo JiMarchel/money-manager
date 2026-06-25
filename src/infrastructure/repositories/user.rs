@@ -4,7 +4,10 @@ use sqlx::PgPool;
 use crate::{
     domain::{
         persistence::error::RepositoryResult,
-        user::{entity::User, error::UserDomainError, repository::UserRepository},
+        user::{
+            entity::{NewUser, User},
+            repository::UserRepository,
+        },
     },
     infrastructure::database::error::DatabaseError,
 };
@@ -30,14 +33,15 @@ impl UserRepository for PostgresUserRepository {
         Ok(row)
     }
 
-    async fn save(&self, user: &User) -> RepositoryResult<()> {
+    async fn save(&self, user: &NewUser) -> RepositoryResult<()> {
         sqlx::query!(
             r#"
-            INSERT INTO users(id, email)
-            VALUES($1, $2)
+            INSERT INTO users(email, username, password_hash)
+            VALUES($1, $2, $3)
             "#,
-            user.id,
-            user.email,
+            user.email.as_ref(),
+            user.username.as_ref(),
+            user.password_hash
         )
         .execute(&self.pool)
         .await
