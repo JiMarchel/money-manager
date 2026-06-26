@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::{
     application::auth::register::{command::RegisterCommand, error::RegisterError},
     domain::{
@@ -10,15 +8,23 @@ use crate::{
             value_object::{Email, Username},
         },
     },
+    infrastructure::{crypto::hasher::Argon2Hasher, repositories::user::PostgresUserRepository},
 };
 
-pub struct RegisterUseCase {
-    user_repo: Arc<dyn UserRepository>,
-    hasher: Arc<dyn PasswordHasher>,
+#[derive(Clone)]
+pub struct RegisterUseCase<U, H>
+where
+    U: UserRepository,
+    H: PasswordHasher,
+{
+    user_repo: U,
+    hasher: H,
 }
 
-impl RegisterUseCase {
-    pub fn new(user_repo: Arc<dyn UserRepository>, hasher: Arc<dyn PasswordHasher>) -> Self {
+pub type Register = RegisterUseCase<PostgresUserRepository, Argon2Hasher>;
+
+impl<U: UserRepository, H: PasswordHasher> RegisterUseCase<U, H> {
+    pub fn new(user_repo: U, hasher: H) -> Self {
         Self { user_repo, hasher }
     }
 

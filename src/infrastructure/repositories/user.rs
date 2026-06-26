@@ -1,4 +1,3 @@
-use async_trait::async_trait;
 use sqlx::PgPool;
 
 use crate::{
@@ -12,6 +11,7 @@ use crate::{
     infrastructure::database::error::DatabaseError,
 };
 
+#[derive(Clone)]
 pub struct PostgresUserRepository {
     pool: PgPool,
 }
@@ -22,7 +22,6 @@ impl PostgresUserRepository {
     }
 }
 
-#[async_trait]
 impl UserRepository for PostgresUserRepository {
     async fn find_by_email(&self, email: &str) -> RepositoryResult<Option<User>> {
         let row = sqlx::query_as!(User, "SELECT * FROM users WHERE email = $1", email)

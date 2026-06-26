@@ -1,15 +1,13 @@
-use std::sync::Arc;
-
 use axum::extract::FromRef;
 
-use crate::application::auth::register::usecase::RegisterUseCase;
+use crate::application::auth::register::usecase::Register;
 
 #[derive(Clone)]
 pub struct AppState {
-    pub register_usecase: Arc<RegisterUseCase>,
+    pub register_usecase: Register,
 }
 
-impl FromRef<AppState> for Arc<RegisterUseCase> {
+impl FromRef<AppState> for Register {
     fn from_ref(state: &AppState) -> Self {
         state.register_usecase.clone()
     }

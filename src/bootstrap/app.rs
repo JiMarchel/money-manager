@@ -1,4 +1,4 @@
-use std::{net::SocketAddr, sync::Arc};
+use std::net::SocketAddr;
 
 use anyhow::Result;
 use axum::{Router, middleware};
@@ -25,14 +25,11 @@ pub async fn run() -> Result<()> {
     //database
     let pool = create_pool(&config.database).await?;
 
-    //repositories
-    let user_repo = Arc::new(PostgresUserRepository::new(pool.clone()));
-
-    //services
-    let hasher = Arc::new(Argon2Hasher::new());
-
     //use case
-    let register_usecase = Arc::new(RegisterUseCase::new(user_repo, hasher));
+    let register_usecase = RegisterUseCase::new(
+        PostgresUserRepository::new(pool.clone()),
+        Argon2Hasher::new(),
+    );
 
     //state
     let state = AppState { register_usecase };

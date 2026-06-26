@@ -7,6 +7,7 @@ use argon2::{
     password_hash::{SaltString, rand_core},
 };
 
+#[derive(Clone)]
 pub struct Argon2Hasher {
     argon2: Argon2<'static>,
 }
