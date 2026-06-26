@@ -1,11 +1,21 @@
-use axum::{Json, http::StatusCode, response::IntoResponse};
+use axum::{
+    Json,
+    http::StatusCode,
+    response::{IntoResponse, Response},
+};
 use serde::Serialize;
+use uuid::Uuid;
 use validator::ValidationErrors;
 
 use crate::{
     application::auth::register::error::RegisterError,
     shared::response::{ApiErrorResponse, ErrorDetail},
 };
+
+pub struct ApiError {
+    pub request_id: Uuid,
+    pub error: AppError,
+}
 
 pub enum AppError {
     BadRequest {
@@ -25,6 +35,7 @@ pub struct ValidationFieldError {
     pub field: String,
     pub message: String,
 }
+
 impl From<ValidationErrors> for AppError {
     fn from(err: ValidationErrors) -> Self {
         let mut errors = Vec::new();
@@ -52,6 +63,11 @@ impl From<ValidationErrors> for AppError {
 }
 impl From<RegisterError> for AppError {
     fn from(err: RegisterError) -> Self {
+        tracing::error!(
+            error = ?err,
+            "Register failed"
+        );
+
         match err {
             RegisterError::EmailAlreadyExists => AppError::Conflict {
                 message: "Email already exists.".into(),
@@ -79,24 +95,35 @@ impl From<RegisterError> for AppError {
     }
 }
 
-impl IntoResponse for AppError {
-    fn into_response(self) -> axum::response::Response {
-        let (status, message, details) = match self {
+impl AppError {
+    pub fn with_request_id(self, request_id: Uuid) -> ApiError {
+        ApiError {
+            request_id,
+            error: self,
+        }
+    }
+}
+
+impl IntoResponse for ApiError {
+    fn into_response(self) -> Response {
+        let (status, message, details) = match self.error {
             AppError::BadRequest { message, details } => {
                 (StatusCode::BAD_REQUEST, message, details)
             }
+
             AppError::Conflict { message } => (StatusCode::CONFLICT, message, None),
 
             AppError::Internal => (
                 StatusCode::INTERNAL_SERVER_ERROR,
-                "Internal server error".to_string(),
+                "Internal server error".into(),
                 None,
             ),
         };
 
         let body = ApiErrorResponse {
             error: ErrorDetail { message, details },
-            request_id: None,
+
+            request_id: Some(self.request_id.to_string()),
         };
 
         (status, Json(body)).into_response()

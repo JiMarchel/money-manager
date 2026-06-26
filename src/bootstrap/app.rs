@@ -1,7 +1,7 @@
 use std::{net::SocketAddr, sync::Arc};
 
 use anyhow::Result;
-use axum::Router;
+use axum::{Router, middleware};
 use tokio::net::TcpListener;
 
 use crate::{
@@ -11,7 +11,7 @@ use crate::{
         crypto::hasher::Argon2Hasher, database::pool::create_pool,
         repositories::user::PostgresUserRepository,
     },
-    presentation::{routes::auth, state::AppState},
+    presentation::{middleware::request_id::request_id, routes::auth, state::AppState},
     shared::logger::init_logging,
 };
 
@@ -40,6 +40,7 @@ pub async fn run() -> Result<()> {
     //router
     let app = Router::new()
         .nest("/api/auth", auth::router())
+        .layer(middleware::from_fn(request_id))
         .with_state(state)
         .merge(crate::presentation::docs::openapi::router());
 

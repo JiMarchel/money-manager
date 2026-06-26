@@ -2,7 +2,12 @@ use axum::{Json, extract::State};
 use validator::Validate;
 
 use crate::{
-    presentation::{dto::auth::RegisterRequest, error::AppError, state::AppState},
+    presentation::{
+        dto::auth::RegisterRequest,
+        error::{ApiError, AppError},
+        middleware::request_context::RequestContext,
+        state::AppState,
+    },
     shared::response::ApiResponse,
 };
 
@@ -19,11 +24,18 @@ use crate::{
 )]
 pub async fn register(
     State(state): State<AppState>,
+    ctx: RequestContext,
     Json(req): Json<RegisterRequest>,
-) -> Result<Json<ApiResponse<()>>, AppError> {
-    req.validate()?;
+) -> Result<Json<ApiResponse<()>>, ApiError> {
+    req.validate()
+        .map_err(AppError::from)
+        .map_err(|e| e.with_request_id(ctx.request_id))?;
 
-    state.register_usecase.execute(req.into()).await?;
+    state
+        .register_usecase
+        .execute(req.into())
+        .await
+        .map_err(|e| AppError::from(e).with_request_id(ctx.request_id))?;
 
     Ok(Json(ApiResponse::success_with_message(
         (),
