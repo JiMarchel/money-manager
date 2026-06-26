@@ -6,6 +6,17 @@ use crate::{
     shared::response::ApiResponse,
 };
 
+#[utoipa::path(
+    post,
+    path = "/api/auth/register",
+    tag = "Auth",
+    request_body = RegisterRequest,
+    responses(
+        (status = 200, description = "User registered successfully"),
+        (status = 400, description = "Validation or Bad Request", body = crate::shared::response::ApiErrorResponse),
+        (status = 409, description = "Conflict - Email already exists", body = crate::shared::response::ApiErrorResponse)
+    )
+)]
 pub async fn register(
     State(state): State<AppState>,
     Json(req): Json<RegisterRequest>,

@@ -3,7 +3,7 @@ use validator::Validate;
 
 use crate::application::auth::register::command::RegisterCommand;
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, utoipa::ToSchema)]
 pub struct RegisterRequest {
     #[validate(
         email(message = "Invalid email format"),

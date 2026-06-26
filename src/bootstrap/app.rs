@@ -36,7 +36,8 @@ pub async fn run() -> Result<()> {
     //router
     let app = Router::new()
         .nest("/api/auth", auth::router())
-        .with_state(state);
+        .with_state(state)
+        .merge(crate::presentation::docs::openapi::router());
 
     //server
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
@@ -46,6 +47,6 @@ pub async fn run() -> Result<()> {
     println!("Listening on {}", addr);
 
     axum::serve(listener, app).await?;
-    
+
     Ok(())
 }

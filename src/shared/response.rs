@@ -1,23 +1,24 @@
 use serde::Serialize;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, utoipa::ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ApiResponse<T> {
     pub data: Option<T>,
     pub message: Option<String>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, utoipa::ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ApiErrorResponse {
     pub error: ErrorDetail,
     pub request_id: Option<String>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, utoipa::ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ErrorDetail {
     pub message: String,
+    #[schema(value_type = Option<Object>)]
     pub details: Option<serde_json::Value>,
 }
 
