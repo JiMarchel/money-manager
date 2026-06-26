@@ -12,9 +12,13 @@ use crate::{
         repositories::user::PostgresUserRepository,
     },
     presentation::{routes::auth, state::AppState},
+    shared::logger::init_logging,
 };
 
 pub async fn run() -> Result<()> {
+    //log
+    init_logging();
+
     //config
     let config = AppConfig::from_env();
 
