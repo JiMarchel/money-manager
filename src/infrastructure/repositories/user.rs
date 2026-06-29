@@ -23,6 +23,7 @@ impl PostgresUserRepository {
 }
 
 impl UserRepository for PostgresUserRepository {
+    #[tracing::instrument(name = "user_repo_find_by_email", skip(self), fields(email = email))]
     async fn find_by_email(&self, email: &str) -> RepositoryResult<Option<User>> {
         let row = sqlx::query_as!(User, "SELECT * FROM users WHERE email = $1", email)
             .fetch_optional(&self.pool)
@@ -32,6 +33,7 @@ impl UserRepository for PostgresUserRepository {
         Ok(row)
     }
 
+    #[tracing::instrument(name = "user_repo_save", skip(self, user))]
     async fn save(&self, user: &NewUser) -> RepositoryResult<()> {
         sqlx::query!(
             r#"

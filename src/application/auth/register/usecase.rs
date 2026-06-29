@@ -28,6 +28,7 @@ impl<U: UserRepository, H: PasswordHasher> RegisterUseCase<U, H> {
         Self { user_repo, hasher }
     }
 
+    #[tracing::instrument(name = "register_usecase", skip(self, command), fields(email = %command.email))]
     pub async fn execute(&self, command: RegisterCommand) -> Result<(), RegisterError> {
         let email = Email::new(command.email)?;
         let username = Username::new(command.username)?;
@@ -39,6 +40,7 @@ impl<U: UserRepository, H: PasswordHasher> RegisterUseCase<U, H> {
             .is_some();
 
         if exists {
+            tracing::warn!("Registration failed: email already exists");
             return Err(RegisterError::EmailAlreadyExists);
         }
 

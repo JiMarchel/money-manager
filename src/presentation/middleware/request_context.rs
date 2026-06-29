@@ -2,7 +2,7 @@ use axum::{extract::FromRequestParts, http::request::Parts};
 
 use crate::presentation::error::{ApiError, AppError};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct RequestContext {
     pub request_id: uuid::Uuid,
 }

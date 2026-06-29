@@ -61,13 +61,9 @@ impl From<ValidationErrors> for AppError {
         }
     }
 }
+
 impl From<RegisterError> for AppError {
     fn from(err: RegisterError) -> Self {
-        tracing::error!(
-            error = ?err,
-            "Register failed"
-        );
-
         match err {
             RegisterError::EmailAlreadyExists => AppError::Conflict {
                 message: "Email already exists.".into(),

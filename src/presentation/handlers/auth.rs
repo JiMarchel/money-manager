@@ -1,4 +1,5 @@
 use axum::{Json, extract::State};
+use tracing::instrument;
 use validator::Validate;
 
 use crate::{
@@ -22,6 +23,11 @@ use crate::{
         (status = 409, description = "Conflict - Email already exists", body = crate::shared::response::ApiErrorResponse)
     )
 )]
+#[instrument(
+    name = "auth_register_handler",
+    skip(state, req, ctx),
+    fields(email = %req.email)
+)]
 pub async fn register(
     State(state): State<AppState>,
     ctx: RequestContext,
@@ -35,7 +41,13 @@ pub async fn register(
         .register_usecase
         .execute(req.into())
         .await
-        .map_err(|e| AppError::from(e).with_request_id(ctx.request_id))?;
+        .inspect_err(|err| {
+            if err.should_log() {
+                tracing::error!(error = ?err, "Registration failed");
+            }
+        })
+        .map_err(AppError::from)
+        .map_err(|e| e.with_request_id(ctx.request_id))?;
 
     Ok(Json(ApiResponse::success_with_message(
         (),

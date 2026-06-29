@@ -2,8 +2,23 @@ use std::env;
 
 use crate::config::{database::DatabaseConfig, error::ConfigError};
 
+pub enum AppEnvironment {
+    Development,
+    Production,
+}
+
+impl AppEnvironment {
+    fn from_str(env: &str) -> Self {
+        match env.to_lowercase().as_str() {
+            "production" | "prod" => AppEnvironment::Production,
+            _ => AppEnvironment::Development,
+        }
+    }
+}
+
 pub struct AppConfig {
     pub database: DatabaseConfig,
+    pub app_env: AppEnvironment,
 }
 
 fn get_env(key: &str) -> Result<String, ConfigError> {
@@ -12,6 +27,7 @@ fn get_env(key: &str) -> Result<String, ConfigError> {
 
 impl AppConfig {
     pub fn from_env() -> Self {
+        let app_env_str = env::var("APP_ENV").unwrap_or_else(|_| "development".to_string());
         Self {
             database: DatabaseConfig {
                 username: get_env("POSTGRES_USER").expect("POSTGRES_USER not found"),
@@ -23,6 +39,7 @@ impl AppConfig {
                     .parse()
                     .unwrap(),
             },
+            app_env: AppEnvironment::from_str(&app_env_str),
         }
     }
 }

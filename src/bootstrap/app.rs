@@ -38,11 +38,12 @@ pub async fn run() -> Result<()> {
     let app = Router::new()
         .nest("/api/auth", auth::router())
         .layer(middleware::from_fn(request_id))
+        .layer(tower_http::trace::TraceLayer::new_for_http())
         .with_state(state)
         .merge(crate::presentation::docs::openapi::router());
 
     //server
-    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 4000));
 
     let listener = TcpListener::bind(addr).await?;
 

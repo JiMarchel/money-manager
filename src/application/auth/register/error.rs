@@ -26,6 +26,12 @@ pub enum RegisterError {
     PasswordHash(PasswordHasherError),
 }
 
+impl RegisterError {
+    pub fn should_log(&self) -> bool {
+        matches!(self, Self::Repository(_) | Self::PasswordHash(_))
+    }
+}
+
 impl From<RepositoryError> for RegisterError {
     fn from(err: RepositoryError) -> Self {
         Self::Repository(err)

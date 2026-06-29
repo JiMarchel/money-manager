@@ -6,6 +6,7 @@ use argon2::{
     Argon2, PasswordHash, PasswordHasher as ArgonHasher, PasswordVerifier,
     password_hash::{SaltString, rand_core},
 };
+use tracing::instrument;
 
 #[derive(Clone)]
 pub struct Argon2Hasher {
@@ -21,6 +22,7 @@ impl Argon2Hasher {
 }
 
 impl PasswordHasher for Argon2Hasher {
+    #[instrument(name = "argon2_hash", skip(self, password))]
     fn hash(&self, password: &str) -> PasswordHasherResult<String> {
         let salt = SaltString::generate(&mut rand_core::OsRng);
 
@@ -33,6 +35,7 @@ impl PasswordHasher for Argon2Hasher {
         Ok(hash_password)
     }
 
+    #[instrument(name = "argon2_verify", skip(self, password))]
     fn verify(&self, password: &str, hash: &str) -> PasswordHasherResult<bool> {
         let parsed_hash = PasswordHash::new(hash).map_err(PasswordHasherError::from)?;
 
